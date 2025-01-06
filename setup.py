@@ -5,6 +5,8 @@ import urllib.request
 from pathlib import Path
 
 def create_local_bin_directory():
+    subprocess.check_call(["sudo", "apt", "update"])
+
     # Get the current user's home directory
     home_dir = str(Path.home())
 
@@ -20,7 +22,7 @@ def create_local_bin_directory():
 
 def install_requirements():
     # Define the pip packages to install
-    packages = ["whatweb", "wfuzz", "ansi2html"]
+    packages = ["wfuzz", "ansi2html"]
     
     # Use subprocess to run the pip install command
     try:
@@ -65,6 +67,14 @@ def install_ffuf():
         print("ffuf installed successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error installing ffuf: {e}")
+
+def install_whatweb():
+    try:
+        print("Installing WhatWeb...")
+        subprocess.check_call(["sudo", "apt", "install", "-y", "whatweb"])
+        print("WhatWeb installed successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error installing WhatWeb: {e}")
 
 def install_aquatone():
     # URL for the Aquatone release
@@ -136,6 +146,7 @@ def main():
     # Create ~/.local/bin directory if it doesn't exist
     create_local_bin_directory()
     install_requirements()
+    install_whatweb()
     install_feroxbuster()
     install_eyewitness()
     install_aquatone()

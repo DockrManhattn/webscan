@@ -34,9 +34,10 @@ def install_feroxbuster():
     # Define the installation directory
     install_dir = os.path.join(str(os.path.expanduser('~')), '.local', 'bin')
     
-    # Run the curl command and pipe to bash
+    # Run the curl command and pipe to bash using subprocess.run
     try:
-        subprocess.check_call(["curl", "-sL", url, "|", "bash", "-s", install_dir])
+        command = f"curl -sL {url} | bash -s {install_dir}"
+        subprocess.run(command, shell=True, check=True)
         print(f"Feroxbuster installed to {install_dir}")
     except subprocess.CalledProcessError as e:
         print(f"Error installing Feroxbuster: {e}")
@@ -89,8 +90,6 @@ def setup_seclists():
         except subprocess.CalledProcessError as e:
             print(f"Error cloning or moving SecLists: {e}")
 
-
-
 def main():
     # Create ~/.local/bin directory if it doesn't exist
     create_local_bin_directory()
@@ -98,8 +97,6 @@ def main():
     install_feroxbuster()
     install_eyewitness()
     setup_seclists()
-
-
 
 if __name__ == "__main__":
     main()

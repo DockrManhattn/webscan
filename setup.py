@@ -120,6 +120,7 @@ def setup_seclists():
     # Define the paths to check
     seclists_path = "/usr/share/seclists"
     secLists_path = "/usr/share/SecLists"
+    temp_clone_path = "/tmp/SecLists"  # Temporary location for cloning
 
     # Check if /usr/share/seclists exists
     if os.path.exists(seclists_path):
@@ -133,11 +134,11 @@ def setup_seclists():
         except subprocess.CalledProcessError as e:
             print(f"Error copying SecLists: {e}")
     else:
-        # If neither exists, clone the repository
+        # If neither exists, clone the repository into a temporary location
         print("SecLists not found. Cloning the repository.")
         try:
-            subprocess.check_call(["sudo", "git", "clone", "-q", "https://github.com/danielmiessler/SecLists.git", "/usr/share"])
-            subprocess.check_call(["sudo", "mv", "/usr/share/SecLists", seclists_path])
+            subprocess.check_call(["sudo", "git", "clone", "-q", "https://github.com/danielmiessler/SecLists.git", temp_clone_path])
+            subprocess.check_call(["sudo", "mv", temp_clone_path, seclists_path])  # Move to the correct location
             print("SecLists cloned and moved successfully.")
         except subprocess.CalledProcessError as e:
             print(f"Error cloning or moving SecLists: {e}")

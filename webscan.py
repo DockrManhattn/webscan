@@ -142,12 +142,12 @@ def run_nmap_scan(target, port, notebook_dir):
     process = subprocess.Popen(nmap_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
 
-        # Call the function to convert the .md file to .html
-        html_file = convert_md_to_html(output_filename, notebook_dir)
+    # Call the function to convert the .md file to .html
+    html_file = convert_md_to_html(output_filename, notebook_dir)
 
-        return stdout.decode(), html_file
-    else:
-        return stderr.decode(), None
+    return stdout.decode(), html_file
+else:
+    return stderr.decode(), None
 
 def run_whatweb_scan(target, port, notebook_dir):    
     output_md_filename = f'021-webscan-{target}-{port}-whatweb-output.md'

@@ -131,7 +131,7 @@ def convert_md_to_html(md_file, notebook_dir):
 def run_nmap_scan(target, port, notebook_dir):
     output_filename = f'020-webscan-{target}-{port}-nmap-http.md'
     nmap_command = [
-        'sudo', 'nmap', '-sCV',
+        'nmap', '-sCV',
         '-script', 'http-webdav-scan.nse,http-userdir-enum.nse,http-shellshock.nse,http-robots.txt.nse,http-enum.nse,http-brute.nse',
         '-oN', output_filename,
         '-p', str(port), target
@@ -139,14 +139,8 @@ def run_nmap_scan(target, port, notebook_dir):
     command_str = " ".join(nmap_command)
     print_informational_message(f"Running Nmap: {RESET}{command_str}")
 
-
     process = subprocess.Popen(nmap_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
-
-    if process.returncode == 0:
-        current_user = getuser()
-        chown_command = ['sudo', 'chown', f'{current_user}:{current_user}', output_filename]
-        subprocess.run(chown_command)
 
         # Call the function to convert the .md file to .html
         html_file = convert_md_to_html(output_filename, notebook_dir)

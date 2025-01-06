@@ -2,10 +2,3 @@
 whatweb
 wfuzz
 ansi2html
-
-# External tools (install via package manager or GitHub)
-# feroxbuster: https://github.com/epi052/feroxbuster
-# ffuf: https://github.com/ffuf/ffuf
-# gobuster: https://github.com/OJ/gobuster
-# eyewitness: https://github.com/FortyNorthSecurity/EyeWitness
-# aquatone: https://github.com/michenriksen/aquatone

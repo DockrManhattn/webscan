@@ -10,6 +10,7 @@ If you have an obsidian notebook be sure to check out these lines in the script:
 ```bash
 # Base directory for obsidian vault
 BASE_NOTEBOOK_PATH = os.path.join(os.path.expanduser("~"), "notes", "Boxes")
+#BASE_NOTEBOOK_PATH = "/path/to/your/obsidian/vault"
 ```
 If you define your notebook path here, the script will automatically move files as html into the path.  With obsidian I use the plugin "htmlreader" to get the best user experience.
 # Usage

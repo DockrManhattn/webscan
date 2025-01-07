@@ -10,7 +10,7 @@ from getpass import getuser
 import time
 
 # Base directory for obsidian vault
-BASE_NOTEBOOK_PATH="/home/kali/notes/Boxes"
+BASE_NOTEBOOK_PATH = os.path.join(os.path.expanduser("~"), "notes", "Boxes")
 
 YELLOW = "\033[33m"
 DARK_WHITE = "\033[2;37m"

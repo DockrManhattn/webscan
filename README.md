@@ -6,7 +6,12 @@ If you have seclists installed, cool.  If you don't have seclists installed as e
 python3 setup.py
 alias webscan='python3 /path/to/webscan.py'
 ```
-
+If you have an obsidian notebook be sure to check out these lines in the script:
+```bash
+# Base directory for obsidian vault
+BASE_NOTEBOOK_PATH="/home/kali/notes/Boxes"
+```
+If you define your notebook path here, the script will automatically move files as html into the path.  With obsidian I use the plugin "htmlreader" to get the best user experience.
 # Usage
 ```bash
 python3 webscan.py 'http://srv.tea.vl:3000'

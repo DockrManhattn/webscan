@@ -9,7 +9,7 @@ alias webscan='python3 /path/to/webscan.py'
 If you have an obsidian notebook be sure to check out these lines in the script:
 ```bash
 # Base directory for obsidian vault
-BASE_NOTEBOOK_PATH="/home/kali/notes/Boxes"
+BASE_NOTEBOOK_PATH = os.path.join(os.path.expanduser("~"), "notes", "Boxes")
 ```
 If you define your notebook path here, the script will automatically move files as html into the path.  With obsidian I use the plugin "htmlreader" to get the best user experience.
 # Usage

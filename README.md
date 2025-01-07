@@ -17,7 +17,7 @@ python3 webscan.py 'http://srv.tea.vl:3000'
 ┌─[kali@parrot]─[~]
 └──╼ $export URL='http://srv.tea.vl:3000'
 ┌─[kali@parrot]─[~/webscan_demo]
-└──╼ $python3 ../webscan/webscan.py $URL
+└──╼ $webscan $URL
 {🌀🌵[+]🌵🌀} Analyzing target: 'http://srv.tea.vl:3000'
 {🌀🌵[+]🌵🌀} Running Nmap: nmap -sCV -script http-webdav-scan.nse,http-userdir-enum.nse,http-shellshock.nse,http-robots.txt.nse,http-enum.nse,http-brute.nse -oN 020-webscan-srv.tea.vl-3000-nmap-http.md -p 3000 srv.tea.vl
 {🌀🌵[+]🌵🌀} Running WhatWeb: whatweb -v -a 3 http://srv.tea.vl:3000 > 021-webscan-srv.tea.vl-3000-whatweb-output.md

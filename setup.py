@@ -1,8 +1,17 @@
 import os
 import subprocess
 import zipfile
+import shutil
 import urllib.request
 from pathlib import Path
+
+def get_current_user_and_shell():
+    """Get the current user's home directory and shell."""
+    home = Path.home()  # Home directory
+    user_name = home.parts[-1]  # Username is the last part of the home path
+    shell = os.getenv("SHELL", "/bin/sh")  # Default to /bin/sh if $SHELL is not set
+    
+    return user_name, shell
 
 def create_local_bin_directory():
     subprocess.check_call(["sudo", "apt", "update"])
@@ -19,6 +28,30 @@ def create_local_bin_directory():
         print(f"Created directory: {local_bin_dir}")
     else:
         print(f"Directory already exists: {local_bin_dir}")
+
+def copy_webscan_script():
+    """Copy webscan.py to the ~/.local/bin directory and make it executable."""
+    # Get the current user's home directory
+    home_dir = Path.home()
+    
+    # Define the source and destination paths
+    local_bin_dir = home_dir / '.local' / 'bin'
+    repo_dir = Path(__file__).parent  # Assumes setup.py is in the same directory as webscan.py
+    source_file = repo_dir / 'webscan.py'
+    destination_file = local_bin_dir / 'webscan.py'
+    
+    # Check if source file exists before copying
+    if not source_file.exists():
+        print(f"Error: {source_file} not found.")
+        return
+    
+    # Copy the file and set permissions
+    try:
+        shutil.copy2(source_file, destination_file)
+        destination_file.chmod(0o755)
+        print(f"Copied {source_file} to {destination_file} and made it executable.")
+    except Exception as e:
+        print(f"Error copying webscan.py: {e}")
 
 def install_requirements():
     # Define the pip packages to install
@@ -117,16 +150,13 @@ def install_aquatone():
             subprocess.check_call(["rm", "-rf", extract_dir])
 
 def setup_seclists():
-    # Define the paths to check
     seclists_path = "/usr/share/seclists"
     secLists_path = "/usr/share/SecLists"
-    temp_clone_path = "/tmp/SecLists"  # Temporary location for cloning
+    temp_clone_path = "/tmp/SecLists"
 
-    # Check if /usr/share/seclists exists
     if os.path.exists(seclists_path):
         print(f"{seclists_path} already exists. No action needed.")
     elif os.path.exists(secLists_path):
-        # If /usr/share/SecLists exists, copy it to /usr/share/seclists
         print(f"{secLists_path} exists. Moving to {seclists_path}.")
         try:
             subprocess.check_call(["sudo", "cp", "-r", secLists_path, seclists_path])
@@ -134,17 +164,40 @@ def setup_seclists():
         except subprocess.CalledProcessError as e:
             print(f"Error copying SecLists: {e}")
     else:
-        # If neither exists, clone the repository into a temporary location
         print("SecLists not found. Cloning the repository.")
         try:
             subprocess.check_call(["sudo", "git", "clone", "-q", "https://github.com/danielmiessler/SecLists.git", temp_clone_path])
-            subprocess.check_call(["sudo", "mv", temp_clone_path, seclists_path])  # Move to the correct location
+            subprocess.check_call(["sudo", "mv", temp_clone_path, seclists_path])
             print("SecLists cloned and moved successfully.")
         except subprocess.CalledProcessError as e:
             print(f"Error cloning or moving SecLists: {e}")
 
+def add_webscan_alias():
+    """Add an alias for webscan to the shell configuration file."""
+    home_dir = Path.home()
+    user_shell = os.environ.get('SHELL', '')
+
+    alias_command = f"alias webscan='python3 {home_dir}/.local/bin/webscan.py'"
+
+    if 'zsh' in user_shell:
+        rc_file = home_dir / '.zshrc'
+        shell_name = 'zsh'
+    elif 'bash' in user_shell:
+        rc_file = home_dir / '.bashrc'
+        shell_name = 'bash'
+    else:
+        print(f"Unsupported shell: {user_shell}. No alias added.")
+        return
+
+    try:
+        with open(rc_file, 'a') as file:
+            file.write(f"\n# Added by setup.py\n{alias_command}\n")
+        print(f"\033[92mAlias for webscan added to {rc_file}.")
+        print(f"Run 'source ~/{rc_file.name}' to apply the changes.\033[0m")
+    except Exception as e:
+        print(f"Error adding alias to {rc_file}: {e}")
+
 def main():
-    # Create ~/.local/bin directory if it doesn't exist
     create_local_bin_directory()
     install_requirements()
     install_whatweb()
@@ -152,6 +205,8 @@ def main():
     install_eyewitness()
     install_aquatone()
     setup_seclists()
+    copy_webscan_script()
+    add_webscan_alias()
 
 if __name__ == "__main__":
     main()

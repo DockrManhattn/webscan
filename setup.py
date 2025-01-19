@@ -149,6 +149,22 @@ def install_aquatone():
         if os.path.exists(extract_dir):
             subprocess.check_call(["rm", "-rf", extract_dir])
 
+def install_additional_tools():
+    # Define the list of additional tools to install
+    tools = [
+        "curl", "dnsrecon", "gobuster", "impacket-scripts", "nbtscan", "nikto", 
+        "onesixtyone", "oscanner", "redis-tools", "smbclient", "smbmap", "snmp", 
+        "sslscan", "sipvicious", "tnscmd10g", "whatweb"
+    ]
+    
+    try:
+        # Use subprocess to install the tools via apt
+        subprocess.check_call(["sudo", "apt", "install", "-y"] + tools)
+        print("Additional tools installed successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error installing additional tools: {e}")
+
+
 def setup_seclists():
     seclists_path = "/usr/share/seclists"
     secLists_path = "/usr/share/SecLists"
@@ -205,6 +221,7 @@ def main():
     install_eyewitness()
     install_aquatone()
     setup_seclists()
+    install_additional_tools()
     copy_webscan_script()
     add_webscan_alias()
 

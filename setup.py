@@ -164,30 +164,6 @@ def install_additional_tools():
     except subprocess.CalledProcessError as e:
         print(f"Error installing additional tools: {e}")
 
-
-def setup_seclists():
-    seclists_path = "/usr/share/seclists"
-    secLists_path = "/usr/share/SecLists"
-    temp_clone_path = "/tmp/SecLists"
-
-    if os.path.exists(seclists_path):
-        print(f"{seclists_path} already exists. No action needed.")
-    elif os.path.exists(secLists_path):
-        print(f"{secLists_path} exists. Moving to {seclists_path}.")
-        try:
-            subprocess.check_call(["sudo", "cp", "-r", secLists_path, seclists_path])
-            print("SecLists copied successfully.")
-        except subprocess.CalledProcessError as e:
-            print(f"Error copying SecLists: {e}")
-    else:
-        print("SecLists not found. Cloning the repository.")
-        try:
-            subprocess.check_call(["sudo", "git", "clone", "-q", "https://github.com/danielmiessler/SecLists.git", temp_clone_path])
-            subprocess.check_call(["sudo", "mv", temp_clone_path, seclists_path])
-            print("SecLists cloned and moved successfully.")
-        except subprocess.CalledProcessError as e:
-            print(f"Error cloning or moving SecLists: {e}")
-
 def add_webscan_alias():
     """Add an alias for webscan to the shell configuration file."""
     home_dir = Path.home()
@@ -213,6 +189,28 @@ def add_webscan_alias():
     except Exception as e:
         print(f"Error adding alias to {rc_file}: {e}")
 
+def unzip_wordlists():
+    repo_dir = Path(__file__).parent
+    zip_file = repo_dir / 'wordlists.zip'
+    
+    local_bin_dir = Path.home() / '.local' / 'bin'
+    
+    if not zip_file.exists():
+        print(f"Error: {zip_file} not found.")
+        return
+    
+    if not local_bin_dir.exists():
+        os.makedirs(local_bin_dir)
+        print(f"Created directory: {local_bin_dir}")
+    
+    try:
+        with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+            zip_ref.extractall(local_bin_dir)
+            print(f"Unzipped {zip_file} to {local_bin_dir}.")
+    except Exception as e:
+        print(f"Error unzipping {zip_file}: {e}")
+
+
 def main():
     create_local_bin_directory()
     install_requirements()
@@ -220,8 +218,8 @@ def main():
     install_feroxbuster()
     install_eyewitness()
     install_aquatone()
-    setup_seclists()
     install_additional_tools()
+    unzip_wordlists()
     copy_webscan_script()
     add_webscan_alias()
 

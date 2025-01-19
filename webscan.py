@@ -325,7 +325,7 @@ def run_gobuster(full_url, target, port, notebook_dir):
         "-w", "/usr/share/seclists/Discovery/Web-Content/big.txt",
         "-x", "php,txt,html,jpg",
         "-t", "150",
-        "-q", "-n", "-e",
+        "-q", "-n", "-e", "-k",
         "-u", full_url,  # Correctly reference `full_url` here
         "--no-error"
     ]

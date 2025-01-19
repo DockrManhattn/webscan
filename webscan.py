@@ -243,7 +243,7 @@ def run_feroxbuster(target, url, port, notebook_dir):
         "-u", url,                 # Target URL
         "-k",                      # Ignore SSL certificate errors
         "--depth", "2",            # Set recursion depth to 2
-        "--wordlist", "/usr/share/wordlists/dirb/common.txt",  # Path to the wordlist
+        "--wordlist", os.path.expanduser("~/.local/bin/wordlists/common.txt"),  # Path to the wordlist
         "-s", "200", "302",        # Filter status codes 200 and 302
         "--threads", "150",        # Use 150 threads
         "--extract-links",         # Extract links from responses
@@ -289,7 +289,7 @@ def run_ffuf(url, target, port, notebook_dir):
     ffuf_command = [
         "ffuf",
         "-u", f"{url}/FUZZ",                # Target URL with FUZZ placeholder
-        "-w", "/usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt",  # Path to the wordlist
+        "-w", os.path.expanduser("~/.local/bin/wordlists/directory-list-2.3-medium.txt"),  # Path to the wordlist
         "-ac",                              # Auto-calibrate filtering
         "-v",                               # Verbose output
         "-t", "150"                         # Set thread count to 150
@@ -322,7 +322,7 @@ def run_ffuf(url, target, port, notebook_dir):
 def run_gobuster(full_url, target, port, notebook_dir):
     gobuster_command = [
         "gobuster", "dir",
-        "-w", "/usr/share/seclists/Discovery/Web-Content/big.txt",
+        "-w", os.path.expanduser("~/.local/bin/wordlists/big.txt"),
         "-x", "php,txt,html,jpg",
         "-t", "150",
         "-q", "-n", "-e", "-k",
@@ -388,7 +388,7 @@ def fuzz_subdomains(domain, target, port, notebook_dir):
     
     ffuf_command = [
         "ffuf",
-        "-w", "/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt:FUZZ",  # Wordlist with FUZZ placeholder
+        "-w", os.path.expanduser("~/.local/bin/wordlists/subdomains-top1million-20000.txt:FUZZ"),  # Wordlist with FUZZ placeholder
         "-u", f"http://FUZZ.{domain}",                 # Target URL with subdomain placeholder
         "-t", "150",                                   # Threads
     ]
@@ -429,7 +429,7 @@ def fuzz_vhosts(domain, target, port, notebook_dir):
         "ffuf",
         "-H", f"Host: FUZZ.{domain}",                  # Host header with FUZZ placeholder
         "-ac",                                         # Auto-calibrate to ignore baseline responses
-        "-w", "/usr/share/seclists/Discovery/DNS/subdomains-top1million-20000.txt",      # Wordlist with FUZZ placeholder
+        "-w", os.path.expanduser("~/.local/bin/wordlists/subdomains-top1million-20000.txt"),      # Wordlist with FUZZ placeholder
         "-u", f"http://{domain}"                       # Target URL
     ]
     

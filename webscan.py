@@ -185,7 +185,7 @@ def run_wget(url):
     print_informational_message(f"Running Wget: {RESET}{' '.join(wget_command)}")
     
     try:
-        result = subprocess.run(wget_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run(wget_command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
     except subprocess.CalledProcessError as e:
         print(f"Error: {e.stderr}")

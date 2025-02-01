@@ -188,7 +188,7 @@ def run_wget(url):
         result = subprocess.run(wget_command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
     except subprocess.CalledProcessError as e:
-        print(f"Error: {e.stderr}")
+        pass
 
 def copy_site_to_notebook(target_dir, notebook_dir):
     try:
@@ -232,138 +232,162 @@ def run_ls_and_tee(target_dir, target, port, notebook_dir):
         print(f"Error: {e.stderr}")
 
 def run_feroxbuster(target, url, port, notebook_dir):
-    
+    import os
+    import subprocess
+
     hostname = extract_hostname(url)
-    
     md_output_filename = f"023-webscan-{hostname}-{port}-ferox_basic_files.md"
-    url_output_filename = f"webscan-urls-{target}-{port}.md"
-    
+
     feroxbuster_command = [
         "feroxbuster",
-        "-u", url,                 # Target URL
-        "-k",                      # Ignore SSL certificate errors
-        "--depth", "2",            # Set recursion depth to 2
-        "--wordlist", os.path.expanduser("~/.local/bin/wordlists/common.txt"),  # Path to the wordlist
-        "-s", "200", "302",        # Filter status codes 200 and 302
-        "--threads", "150",        # Use 150 threads
-        "--extract-links",         # Extract links from responses
-        "-E",                      # Automatically discover extensions and add them to
-        "-B",                      # Automatically request likely backup extensions for "found"
-        "-g",                      # Automatically discover important words from within responses
-        "-x", "php,html", # Extensions to look for
-        "-o", md_output_filename   # Output file for the results
+        "-u", url,
+        "-k",
+        "--depth", "2",
+        "--wordlist", os.path.expanduser("~/.local/bin/wordlists/common.txt"),
+        "-s", "200", "302",
+        "--threads", "150",
+        "--extract-links",
+        "-E",
+        "-B",
+        "-g",
+        "-x", "php,html",
+        "-o", md_output_filename
     ]
 
     try:
         print_informational_message(f"Running Feroxbuster: {RESET}{' '.join(feroxbuster_command)}")
-        result = subprocess.run(feroxbuster_command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        with open(md_output_filename, 'w') as output_file:
+            subprocess.run(feroxbuster_command, stdout=output_file, stderr=subprocess.DEVNULL, check=True, text=True)
         
-        with open(md_output_filename, 'r') as md_file:
-            filtered_lines = [line for line in md_file if "http://" in line or "https://" in line]
-
-        with open(md_output_filename, 'w') as md_file:
-            md_file.writelines(filtered_lines)
-        
+        # Convert Markdown to HTML
         html_output = convert_md_to_html(md_output_filename, notebook_dir)
-        
-        with open(md_output_filename, 'r') as md_file, open(url_output_filename, 'w') as url_file:
-            urls = set()
-            for line in md_file:
-                for match in re.findall(r'http://[^\s]+', line):
-                    sanitized_url = match.rstrip('",')
-                    urls.add(sanitized_url)
-            
-            for url in sorted(urls):
-                url_file.write(url + '\n')
-                
+
     except subprocess.CalledProcessError as e:
-        print(f"Error running feroxbuster: {e.stderr}")
+        print(f"Error running feroxbuster: {e}")
     except Exception as e:
         print(f"Error during processing: {e}")
 
+
 def run_ffuf(url, target, port, notebook_dir):    
     output_filename = f"024-webscan-{target}-{port}-ffuf_wordlist.md"
-    url_output_filename = f"webscan-urls-{target}-{port}.md"  # Output file for sanitized URLs
     url = url.rstrip("/")
 
     ffuf_command = [
         "ffuf",
-        "-u", f"{url}/FUZZ",                # Target URL with FUZZ placeholder
-        "-w", os.path.expanduser("~/.local/bin/wordlists/directory-list-2.3-medium.txt"),  # Path to the wordlist
-        "-ac",                              # Auto-calibrate filtering
-        "-v",                               # Verbose output
-        "-t", "150"                         # Set thread count to 150
+        "-u", f"{url}/FUZZ",
+        "-w", os.path.expanduser("~/.local/bin/wordlists/directory-list-2.3-medium.txt"),
+        "-ac",
+        "-v",
+        "-t", "150"
     ]
     
     try:
+        print_informational_message(f"Running FFUF: {RESET}{' '.join(ffuf_command)}")
         with open(output_filename, 'w') as output_file:
-            print_informational_message(f"Running Ffuf: {RESET}{' '.join(ffuf_command)}")
-            subprocess.run(ffuf_command, check=True, stdout=output_file, stderr=subprocess.PIPE, text=True)
-        
-        html_output = convert_md_to_html(output_filename, notebook_dir)
+            subprocess.run(ffuf_command, stdout=output_file, stderr=subprocess.DEVNULL, check=True, text=True)
 
-        with open(output_filename, 'r') as md_file, open(url_output_filename, 'w') as url_file:
-            urls = set()
-            for line in md_file:
-                for match in re.findall(r'http://[^\s]+', line):
-                    sanitized_url = match.rstrip('",')
-                    urls.add(sanitized_url)
-            
-            for url in sorted(urls):
-                url_file.write(url + '\n')
-                
+        html_output = convert_md_to_html(output_filename, notebook_dir)
+    
     except subprocess.CalledProcessError as e:
         print(f"Error occurred while running ffuf: {e}")
-        print(f"Error details: {e.stderr}")
-    
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 
+
 def run_gobuster(full_url, target, port, notebook_dir):
+    if not target or not port:
+        raise ValueError("Target and port must be defined")
+
+    output_file = f"025-webscan-{target}-{port}-gobuster_wc_big.md"
+
     gobuster_command = [
         "gobuster", "dir",
         "-w", os.path.expanduser("~/.local/bin/wordlists/big.txt"),
         "-x", "php,txt,html,jpg",
         "-t", "150",
         "-q", "-n", "-e", "-k",
-        "-u", full_url,  # Correctly reference `full_url` here
+        "-u", full_url,
         "--no-error"
     ]
 
-    print_informational_message(f"Running Gobuster: {RESET}{' '.join(gobuster_command)}")
+    try:
+        print_informational_message(f"Running Gobuster: {RESET}{' '.join(gobuster_command)}")
+        with open(output_file, 'w') as output_f:
+            subprocess.run(gobuster_command, stdout=output_f, stderr=subprocess.DEVNULL, check=True, text=True)
 
-    output_file = f"025-webscan-{target}-{port}-gobuster_wc_big.md"
-    url_output_filename = f"webscan-urls-{target}-{port}.md"
+    except subprocess.CalledProcessError as e:
+        print(f"Error running gobuster: {e}")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
 
-    with open(output_file, "w") as outfile:
-        subprocess.run(gobuster_command, stdout=outfile, stderr=subprocess.PIPE, check=True)
 
-    with open(output_file, 'r') as infile:
-        lines = infile.readlines()
 
-    urls = [line.split()[0] for line in lines if 'http' in line]
+def process_webscan_files(target, port):
+    output_file = f'webscan-urls-{target}-{port}.md'
+    unique_urls = set()
+    
+    file_mappings = {
+        '023': f'023-webscan-{target}-{port}-ferox_basic_files.md',
+        '024': f'024-webscan-{target}-{port}-ffuf_wordlist.md',
+        '025': f'025-webscan-{target}-{port}-gobuster_wc_big.md'
+    }
 
-    with open(url_output_filename, 'a') as url_file:
-        for url in urls:
-            url_file.write(f"{url}\n")
+    for prefix, filename in file_mappings.items():
+        try:
+            with open(filename, 'r') as file:
+                for line in file:
+                    url = ''
+                    if prefix == '023':  # Feroxbuster
+                        parts = line.split()
+                        if len(parts) > 5:
+                            url = parts[5]
 
-    with open(url_output_filename, 'r') as url_file:
-        lines = url_file.readlines()
+                    elif prefix == '024':  # FFUF
+                        if 'http' in line:
+                            parts = line.split()
+                            if len(parts) > 3:
+                                url = parts[3]
 
-    unique_urls = sorted(set(line.strip() for line in lines))
+                    elif prefix == '025':  # Gobuster
+                        parts = line.split()
+                        if len(parts) > 0:
+                            url = parts[0]
 
-    with open(url_output_filename, 'w') as url_file:
+                    if url:
+                        #print(f"Extracted URL from {filename}: {url}")  # Debugging
+                        unique_urls.add(url)
+        except FileNotFoundError:
+            print(f"File {filename} not found, skipping.")
+            continue
+
+    with open(output_file, 'w') as file:
         for url in unique_urls:
-            url_file.write(f"{url}\n")
+            file.write(url + '\n')
+    
+    print(f"Extracted {len(unique_urls)} unique URLs and wrote to {output_file}")
 
-    html_output = convert_md_to_html(output_file, notebook_dir)
-    return html_output
+
 
 def convert_webscan_urls_to_html(target, port, notebook_dir):
     url_output_filename = f"webscan-urls-{target}-{port}.md"
     
     if not os.path.isfile(url_output_filename):
         print(f"Error: The file {url_output_filename} does not exist.")
+        
+        # Run the cat | awk command here if needed (assuming you want to process a different file)
+        file_path = '023-webscan-clipbucket.local-80-ferox_basic_files.md'
+        try:
+            # Running the shell command directly
+            command = f"cat {file_path} | awk '{{print $6}}'"
+            result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            
+            # Print the result of the command
+            print(result.stdout)
+        
+        except subprocess.CalledProcessError as e:
+            print(f"Error occurred while running awk command: {e.stderr}")
+        
+        # Return None after handling the error
         return None
 
     with open(url_output_filename, 'r') as file:
@@ -389,8 +413,8 @@ def fuzz_subdomains(domain, target, port, notebook_dir):
     ffuf_command = [
         "ffuf",
         "-w", os.path.expanduser("~/.local/bin/wordlists/dnslist.txt:FUZZ"),  # Wordlist with FUZZ placeholder
-        "-u", f"http://FUZZ.{domain}",  
-        "-mc", "all",
+        "-u", f"http://FUZZ.{domain}",                 # Target URL with subdomain placeholder
+        "-mc", "all", 
         "-t", "150",                                   # Threads
     ]
     
@@ -429,8 +453,8 @@ def fuzz_vhosts(domain, target, port, notebook_dir):
     ffuf_command = [
         "ffuf",
         "-H", f"Host: FUZZ.{domain}",                  # Host header with FUZZ placeholder
-        "-ac",  
-        "-mc", "all",
+        "-ac",
+        "-mc", "all",                                         # Auto-calibrate to ignore baseline responses
         "-w", os.path.expanduser("~/.local/bin/wordlists/dnslist.txt"),      # Wordlist with FUZZ placeholder
         "-u", f"http://{domain}"                       # Target URL
     ]
@@ -559,6 +583,7 @@ def main():
     run_feroxbuster(args.target, args.full_url, args.port, notebook_dir)
     run_ffuf(args.full_url, args.target, args.port, notebook_dir)
     run_gobuster(args.full_url, args.target, args.port, notebook_dir)
+    process_webscan_files(args.target, args.port)
     convert_webscan_urls_to_html(args.target, args.port, notebook_dir)
     run_eyewitness(args.domain, args.target, args.port)
     copy_eyewitness_screens(notebook_dir, args.target, args.port)

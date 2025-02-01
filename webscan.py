@@ -389,7 +389,8 @@ def fuzz_subdomains(domain, target, port, notebook_dir):
     ffuf_command = [
         "ffuf",
         "-w", os.path.expanduser("~/.local/bin/wordlists/dnslist.txt:FUZZ"),  # Wordlist with FUZZ placeholder
-        "-u", f"http://FUZZ.{domain}",                 # Target URL with subdomain placeholder
+        "-u", f"http://FUZZ.{domain}",  
+        "-mc", "all",
         "-t", "150",                                   # Threads
     ]
     
@@ -428,7 +429,8 @@ def fuzz_vhosts(domain, target, port, notebook_dir):
     ffuf_command = [
         "ffuf",
         "-H", f"Host: FUZZ.{domain}",                  # Host header with FUZZ placeholder
-        "-ac",                                         # Auto-calibrate to ignore baseline responses
+        "-ac",  
+        "-mc", "all",
         "-w", os.path.expanduser("~/.local/bin/wordlists/dnslist.txt"),      # Wordlist with FUZZ placeholder
         "-u", f"http://{domain}"                       # Target URL
     ]
